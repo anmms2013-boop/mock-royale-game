@@ -1,0 +1,228 @@
+.game-ui {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.ui-panel {
+  position: absolute;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(168, 85, 247, 0.15));
+  border: 2px solid rgba(59, 130, 246, 0.4);
+  border-radius: 12px;
+  padding: 16px 20px;
+  backdrop-filter: blur(12px);
+  color: white;
+  font-weight: 600;
+  pointer-events: auto;
+}
+
+.top-left {
+  top: 20px;
+  left: 20px;
+  display: flex;
+  gap: 30px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 11px;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.value {
+  font-size: 18px;
+  color: #fbbf24;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.top-right {
+  top: 20px;
+  right: 20px;
+  text-align: center;
+}
+
+.eliminations h3 {
+  font-size: 12px;
+  color: #a0aec0;
+  margin: 0 0 8px 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.big-number {
+  font-size: 48px;
+  background: linear-gradient(135deg, #ec4899, #d946ef);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  font-weight: 900;
+}
+
+.right-panel {
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 200px;
+}
+
+.stat-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #a0aec0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.health-bar,
+.shield-bar,
+.materials-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.health-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #34d399);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.shield-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #06b6d4);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.materials-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d97706, #fbbf24);
+  border-radius: 4px;
+  transition: width 0.2s ease;
+}
+
+.stat-value {
+  font-size: 12px;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.build-mode-indicator {
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(168, 85, 247, 0.4);
+  border-radius: 8px;
+  font-size: 11px;
+  text-align: center;
+  color: #a0aec0;
+  font-weight: 600;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+}
+
+.build-mode-indicator.active {
+  background: rgba(168, 85, 247, 0.3);
+  border-color: rgba(168, 85, 247, 0.8);
+  color: #d8b4fe;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+.mini-map {
+  bottom: 20px;
+  left: 20px;
+  width: 150px;
+  height: 150px;
+  padding: 0 !important;
+  border: 2px solid rgba(168, 85, 247, 0.5) !important;
+  background: linear-gradient(135deg, rgba(10, 14, 39, 0.8), rgba(15, 23, 42, 0.9)) !important;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.map-bg {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(15, 76, 76, 0.6), rgba(26, 58, 58, 0.6));
+}
+
+.map-player {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.8);
+}
+
+.map-storm {
+  position: absolute;
+  border: 2px solid rgba(168, 85, 247, 0.5);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.controls {
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 180px;
+  padding: 12px !important;
+}
+
+.control-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+}
+
+kbd {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 10px;
+  color: #fbbf24;
+  font-weight: 600;
+  min-width: 30px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.control-item span {
+  color: #cbd5e1;
+  font-size: 10px;
+}
