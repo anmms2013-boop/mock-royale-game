@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock Royale - Battle Royale Game</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body, #root {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #2d1b4e 100%);
+            color: #e2e8f0;
+        }
+
+        /* Animations */
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
+            50% { opacity: 0.8; box-shadow: 0 0 30px rgba(59, 130, 246, 0.7); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes slide-in-left {
+            from { opacity: 0; transform: translateX(-100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slide-in-right {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        .float {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .slide-in-left {
+            animation: slide-in-left 0.5s ease-out;
+        }
+
+        .slide-in-right {
+            animation: slide-in-right 0.5s ease-out;
+        }
+
+        .btn {
+            padding: 16px 32px;
+            font-size: 16px;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 48px rgba(59, 130, 246, 0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(59, 130, 246, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.8);
+        }
+
+        .glass {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(168, 85, 247, 0.15));
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .particle {
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.8), rgba(168, 85, 247, 0.4));
+            border-radius: 50%;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+            position: absolute;
+        }
+
+        .game-world {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #0f4c4c 0%, #1a3a3a 100%);
+            position: relative;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        .storm-circle {
+            position: absolute;
+            border: 3px solid rgba(168, 85, 247, 0.6);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: inset 0 0 30px rgba(168, 85, 247, 0.3), 0 0 20px rgba(168, 85, 247, 0.5);
+            animation: pulse-glow 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .player {
+            position: absolute;
+            width: 40px;
+            height: 50px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-radius: 8px;
+            box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(59, 130, 246, 0.4);
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .player::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #fbbf24;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .bot {
+            position: absolute;
+            width: 40px;
+            height: 50px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-radius: 8px;
+            box-shadow: inset -3px -3px 6px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(239, 68, 68, 0.4);
+            transform: translate(-50%, -50%);
+            z-index: 8;
+        }
+
+        .bot::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: #fbbf24;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .bot-name {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            font-size: 11px;
+            color: #cbd5e1;
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .bot-health {
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .bot-health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            border-radius: 2px;
+            transition: width 0.1s ease;
+        }
+
+        .wall {
+            position: absolute;
+            background: linear-gradient(135deg, #92400e, #b45309);
+            border: 2px solid rgba(180, 83, 9, 0.8);
+            box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.3);
+            transform: translate(-50%, -50%);
+            z-index: 5;
+        }
+
+        .ui-panel {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(168, 85, 247, 0.15));
+            border: 2px solid rgba(59, 130, 246, 0.4);
+            border-radius: 12px;
+            padding: 16px 20px;
+            backdrop-filter: blur(12px);
+            color: white;
+            font-weight: 600;
+        }
+
+        .ui-top-left {
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 30px;
+        }
+
+        .ui-top-right {
+            top: 20px;
+            right: 20px;
+            text-align: center;
+        }
+
+        .ui-right {
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 200px;
+        }
+
+        .stat-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .health-bar, .materials-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            border-radius: 4px;
+            transition: width 0.2s ease;
+        }
+
+        .materials-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d97706, #fbbf24);
+            border-radius: 4px;
+            transition: width 0.2s ease;
+        }
+
+        .start-screen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 40px 60px;
+            position: relative;
+        }
+
+        .start-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            gap: 80px;
+        }
+
+        .game-title {
+            font-size: 72px;
+            font-weight: 900;
+            letter-spacing: 4px;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .title-text {
+            display: block;
+            color: #fff;
+            text-shadow: 0 4px 20px rgba(59, 130, 246, 0.6);
+        }
+
+        .title-accent {
+            display: block;
+            background: linear-gradient(135deg, #3b82f6, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 300px;
+            margin-top: 30px;
+        }
+
+        .character-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .character-model {
+            width: 250px;
+            height: 350px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.5));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .character-head {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            border-radius: 50%;
+            top: 20px;
+            box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .character-body {
+            position: absolute;
+            width: 80px;
+            height: 100px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-radius: 20px;
+            top: 80px;
+            box-shadow: inset -15px -15px 30px rgba(0, 0, 0, 0.3), 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .character-legs {
+            position: absolute;
+            width: 70px;
+            height: 80px;
+            background: linear-gradient(135deg, #a855f7, #9333ea);
+            border-radius: 15px;
+            bottom: 10px;
+            box-shadow: inset -10px -10px 20px rgba(0, 0, 0, 0.3), 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .lobby-screen {
+            width: 100vw;
+            height: 100vh;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .lobby-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .lobby-header h1 {
+            font-size: 36px;
+            font-weight: 900;
+            color: white;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid rgba(59, 130, 246, 0.5);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.8);
+        }
+
+        .game-screen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .win-screen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        .win-title {
+            font-size: 64px;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 3px;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        .stats-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 12px;
+            color: #a0aec0;
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .big-stat {
+            font-size: 32px;
+            color: #3b82f6;
+            margin: 0;
+            font-weight: 900;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script>
+        const { useState, useEffect, useRef } = React;
+
+        // Utility Functions
+        const getDistance = (x1, y1, x2, y2) => {
+            return Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
+        };
+
+        // Start Screen Component
+        const StartScreen = ({ onPlayClick }) => {
+            const particles = Array.from({ length: 30 }).map((_, i) => ({
+                id: i,
+                left: Math.random() * 100,
+                top: Math.random() * 100,
+                size: Math.random() * 4 + 2,
+            }));
+
+            return React.createElement(
+                'div',
+                { className: 'start-screen slide-in-left' },
+                React.createElement(
+                    'div',
+                    { style: { position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #2d1b4e 100%)', zIndex: 0 } },
+                    particles.map(p =>
+                        React.createElement('div', {
+                            key: p.id,
+                            className: 'particle',
+                            style: {
+                                left: `${p.left}%`,
+                                top: `${p.top}%`,
+                                width: `${p.size}px`,
+                                height: `${p.size}px`,
+                                animation: `float ${3 + Math.random() * 2}s infinite`,
+                                animationDelay: `${Math.random() * 2}s`,
+                            },
+                        })
+                    )
+                ),
+                React.createElement(
+                    'div',
+                    { className: 'start-content', style: { position: 'relative', zIndex: 10 } },
+                    React.createElement(
+                        'div',
+                        { className: 'slide-in-left', style: { flex: 1 } },
+                        React.createElement(
+                            'h1',
+                            { className: 'game-title float' },
+                            React.createElement('span', { className: 'title-text' }, 'MOCK'),
+                            React.createElement('span', { className: 'title-accent' }, 'ROYALE')
+                        ),
+                        React.createElement(
+                            'p',
+                            { style: { fontSize: '24px', color: '#a0aec0', margin: '20px 0', letterSpacing: '2px' } },
+                            'Drop. Fight. Build. Survive.'
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'button-group' },
+                            React.createElement('button', { className: 'btn btn-primary', onClick: onPlayClick }, 'PLAY'),
+                            React.createElement('button', { className: 'btn btn-secondary' }, 'LOCKER'),
+                            React.createElement('button', { className: 'btn btn-secondary' }, 'SETTINGS')
+                        )
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'slide-in-right', style: { flex: 1 } },
+                        React.createElement(
+                            'div',
+                            { className: 'character-display' },
+                            React.createElement(
+                                'div',
+                                { className: 'character-model' },
+                                React.createElement('div', { className: 'character-head' }),
+                                React.createElement('div', { className: 'character-body' }),
+                                React.createElement('div', { className: 'character-legs' })
+                            ),
+                            React.createElement(
+                                'div',
+                                { style: { textAlign: 'center' } },
+                                React.createElement('h3', { style: { fontSize: '24px', color: 'white', margin: '0 0 8px 0' } }, 'Agent Alpha'),
+                                React.createElement('p', { style: { fontSize: '14px', color: '#a0aec0', margin: 0 } }, 'Legendary Operator')
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // Lobby Screen Component
+        const LobbyScreen = ({ onStartMatch, onBack }) => {
+            const [selectedMode, setSelectedMode] = useState('solo');
+
+            return React.createElement(
+                'div',
+                { className: 'lobby-screen slide-in-down' },
+                React.createElement(
+                    'div',
+                    { className: 'lobby-header' },
+                    React.createElement('h1', null, 'Lobby'),
+                    React.createElement('button', { className: 'btn-back', onClick: onBack }, '← Back')
+                ),
+                React.createElement(
+                    'div',
+                    { style: { display: 'flex', gap: '40px', flex: 1 } },
+                    React.createElement(
+                        'div',
+                        { style: { flex: 1 } },
+                        React.createElement(
+                            'div',
+                            { className: 'glass', style: { padding: '30px', marginBottom: '20px' } },
+                            React.createElement(
+                                'h3',
+                                { style: { fontSize: '24px', color: 'white', margin: '0 0 15px 0' } },
+                                'Agent Alpha'
+                            ),
+                            React.createElement('p', { style: { color: '#a0aec0', margin: '0 0 15px 0' } }, 'Legendary Operator'),
+                            React.createElement(
+                                'div',
+                                { style: { display: 'flex', flexDirection: 'column', gap: '8px' } },
+                                React.createElement('div', { style: { fontSize: '13px', color: '#cbd5e1' } }, 'Wins: ', React.createElement('span', { style: { color: '#fbbf24', fontWeight: 'bold' } }, '42')),
+                                React.createElement('div', { style: { fontSize: '13px', color: '#cbd5e1' } }, 'K/D: ', React.createElement('span', { style: { color: '#fbbf24', fontWeight: 'bold' } }, '2.5'))
+                            )
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'glass', style: { padding: '20px' } },
+                            React.createElement('h3', { style: { fontSize: '14px', color: '#a0aec0', margin: '0 0 15px 0', textTransform: 'uppercase', letterSpacing: '2px' } }, 'Game Mode'),
+                            React.createElement(
+                                'div',
+                                { style: { display: 'flex', gap: '10px' } },
+                                ['solo', 'duo', 'squad'].map(mode =>
+                                    React.createElement('button', {
+                                        key: mode,
+                                        className: 'btn',
+                                        style: {
+                                            flex: 1,
+                                            padding: '12px',
+                                            background: selectedMode === mode ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'transparent',
+                                            color: 'white',
+                                            border: `2px solid ${selectedMode === mode ? '#3b82f6' : 'rgba(59, 130, 246, 0.4)'}`,
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            fontSize: '12px',
+                                            fontWeight: 600,
+                                            transition: 'all 0.3s ease',
+                                        },
+                                        onClick: () => setSelectedMode(mode),
+                                    }, mode.toUpperCase())
+                                )
+                            )
+                        )
+                    ),
+                    React.createElement(
+                        'div',
+                        { style: { flex: 1, display: 'flex', flexDirection: 'column', gap: '20px' } },
+                        React.createElement(
+                            'div',
+                            { className: 'glass', style: { padding: '20px' } },
+                            React.createElement('h3', { style: { fontSize: '14px', color: 'white', margin: '0 0 15px 0' } }, 'Daily Quests'),
+                            ['Eliminations', 'Survive', 'Build Structures'].map((quest, i) =>
+                                React.createElement(
+                                    'div',
+                                    { key: i, style: { background: 'rgba(0, 0, 0, 0.2)', borderRadius: '8px', padding: '12px', marginBottom: i < 2 ? '12px' : '0' } },
+                                    React.createElement('div', { style: { fontSize: '12px', color: '#cbd5e1', marginBottom: '6px' } }, quest),
+                                    React.createElement(
+                                        'div',
+                                        { style: { width: '100%', height: '6px', background: 'rgba(0, 0, 0, 0.3)', borderRadius: '3px', overflow: 'hidden', marginBottom: '4px' } },
+                                        React.createElement('div', {
+                                            style: {
+                                                height: '100%',
+                                                background: 'linear-gradient(90deg, #3b82f6, #a855f7)',
+                                                width: `${[45, 70, 20][i]}%`,
+                                            },
+                                        })
+                                    ),
+                                    React.createElement('div', { style: { fontSize: '11px', color: '#fbbf24', fontWeight: 'bold' } }, `${[5, 7, 2][i]}/10`)
+                                )
+                            )
+                        ),
+                        React.createElement(
+                            'button',
+                            { className: 'btn btn-primary', onClick: onStartMatch, style: { marginTop: 'auto' } },
+                            'START MATCH'
+                        )
+                    )
+                )
+            );
+        };
+
+        // Game Screen Component
+        const GameScreen = ({ onGameEnd }) => {
+            const [player, setPlayer] = useState({ x: 400, y: 300, vx: 0, vy: 0, health: 100, materials: 300 });
+            const [bots, setBots] = useState([
+                { id: 1, x: 200, y: 150, vx: 0, vy: 0, health: 100, name: 'Bot Alpha' },
+                { id: 2, x: 600, y: 400, vx: 0, vy: 0, health: 100, name: 'Bot Bravo' },
+                { id: 3, x: 800, y: 200, vx: 0, vy: 0, health: 100, name: 'Bot Charlie' },
+            ]);
+            const [stormCircle, setStormCircle] = useState({ x: 500, y: 300, radius: 400, minRadius: 50 });
+            const [eliminations, setEliminations] = useState(0);
+            const [time, setTime] = useState(0);
+            const keysPressed = useRef({});
+            const mousePos = useRef({ x: 0, y: 0 });
+
+            // Input handling
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    keysPressed.current[e.key.toLowerCase()] = true;
+                };
+                const handleKeyUp = (e) => {
+                    keysPressed.current[e.key.toLowerCase()] = false;
+                };
+                const handleMouseMove = (e) => {
+                    mousePos.current = { x: e.clientX, y: e.clientY };
+                };
+                const handleClick = () => {
+                    const dx = mousePos.current.x - player.x;
+                    const dy = mousePos.current.y - player.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > 0) {
+                        setBots(prev =>
+                            prev.map(b => {
+                                const botDist = getDistance(b.x, b.y, player.x, player.y);
+                                if (botDist < 150) {
+                                    return { ...b, health: Math.max(0, b.health - 30) };
+                                }
+                                return b;
+                            })
+                        );
+                    }
+                };
+
+                window.addEventListener('keydown', handleKeyDown);
+                window.addEventListener('keyup', handleKeyUp);
+                window.addEventListener('mousemove', handleMouseMove);
+                window.addEventListener('click', handleClick);
+
+                return () => {
+                    window.removeEventListener('keydown', handleKeyDown);
+                    window.removeEventListener('keyup', handleKeyUp);
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    window.removeEventListener('click', handleClick);
+                };
+            }, [player]);
+
+            // Game loop
+            useEffect(() => {
+                const gameLoop = setInterval(() => {
+                    setPlayer(prevPlayer => {
+                        let newPlayer = { ...prevPlayer };
+                        const speed = keysPressed.current['shift'] ? 4 : 2.5;
+
+                        if (keysPressed.current['w'] || keysPressed.current['arrowup']) newPlayer.vy -= speed;
+                        if (keysPressed.current['s'] || keysPressed.current['arrowdown']) newPlayer.vy += speed;
+                        if (keysPressed.current['a'] || keysPressed.current['arrowleft']) newPlayer.vx -= speed;
+                        if (keysPressed.current['d'] || keysPressed.current['arrowright']) newPlayer.vx += speed;
+
+                        newPlayer.vx *= 0.92;
+                        newPlayer.vy *= 0.92;
+                        newPlayer.x += newPlayer.vx;
+                        newPlayer.y += newPlayer.vy;
+
+                        newPlayer.x = Math.max(0, Math.min(1000, newPlayer.x));
+                        newPlayer.y = Math.max(0, Math.min(600, newPlayer.y));
+
+                        const distToCenter = getDistance(newPlayer.x, newPlayer.y, stormCircle.x, stormCircle.y);
+                        if (distToCenter > stormCircle.radius) {
+                            newPlayer.health = Math.max(0, newPlayer.health - 0.5);
+                        }
+
+                        newPlayer.materials = Math.min(300, newPlayer.materials + 0.1);
+                        return newPlayer;
+                    });
+
+                    setBots(prevBots =>
+                        prevBots
+                            .map(bot => {
+                                if (bot.health <= 0) return bot;
+                                let newBot = { ...bot };
+                                const distToPlayer = getDistance(bot.x, bot.y, player.x, player.y);
+
+                                if (distToPlayer < 200) {
+                                    const dx = player.x - bot.x;
+                                    const dy = player.y - bot.y;
+                                    const dist = Math.sqrt(dx * dx + dy * dy);
+                                    newBot.vx = (dx / dist) * 1.5;
+                                    newBot.vy = (dy / dist) * 1.5;
+                                } else {
+                                    if (Math.random() < 0.02) {
+                                        newBot.vx = (Math.random() - 0.5) * 2;
+                                        newBot.vy = (Math.random() - 0.5) * 2;
+                                    }
+                                }
+
+                                newBot.x += newBot.vx;
+                                newBot.y += newBot.vy;
+                                newBot.x = Math.max(0, Math.min(1000, newBot.x));
+                                newBot.y = Math.max(0, Math.min(600, newBot.y));
+                                return newBot;
+                            })
+                            .filter(bot => bot.health > 0)
+                    );
+
+                    setStormCircle(prev => ({
+                        ...prev,
+                        radius: Math.max(prev.minRadius, prev.radius - 0.3),
+                    }));
+
+                    setTime(t => t + 1);
+                }, 1000 / 60);
+
+                return () => clearInterval(gameLoop);
+            }, [stormCircle, player]);
+
+            // Check win/lose
+            useEffect(() => {
+                setEliminations(3 - bots.length);
+                if (player.health <= 0 || bots.length === 0) {
+                    onGameEnd({ eliminations: 3 - bots.length });
+                }
+            }, [player.health, bots.length, onGameEnd]);
+
+            const formatTime = (seconds) => {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            };
+
+            return React.createElement(
+                'div',
+                { className: 'game-screen' },
+                // Game World
+                React.createElement(
+                    'div',
+                    { className: 'game-world', style: { flex: 1 } },
+                    // Storm circle
+                    React.createElement('div', {
+                        className: 'storm-circle',
+                        style: {
+                            left: `${stormCircle.x}px`,
+                            top: `${stormCircle.y}px`,
+                            width: `${stormCircle.radius * 2}px`,
+                            height: `${stormCircle.radius * 2}px`,
+                        },
+                    }),
+                    // Bots
+                    bots.map(bot =>
+                        React.createElement(
+                            'div',
+                            { key: bot.id, style: { position: 'absolute', left: `${bot.x}px`, top: `${bot.y}px` } },
+                            React.createElement('div', { className: 'bot' }),
+                            React.createElement('div', { className: 'bot-name' }, bot.name),
+                            React.createElement(
+                                'div',
+                                { className: 'bot-health' },
+                                React.createElement('div', {
+                                    className: 'bot-health-fill',
+                                    style: { width: `${(bot.health / 100) * 100}%` },
+                                })
+                            )
+                        )
+                    ),
+                    // Player
+                    React.createElement('div', {
+                        className: 'player',
+                        style: { left: `${player.x}px`, top: `${player.y}px` },
+                    })
+                ),
+                // UI Panel
+                React.createElement(
+                    'div',
+                    { style: { position: 'absolute', inset: 0, pointerEvents: 'none' } },
+                    // Top-left
+                    React.createElement(
+                        'div',
+                        { className: 'ui-panel ui-top-left' },
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement('div', { className: 'stat-label' }, 'Players'),
+                            React.createElement('div', { style: { fontSize: '18px', color: '#fbbf24', fontWeight: 'bold' } }, `${bots.length + 1}/3`)
+                        ),
+                        React.createElement(
+                            'div',
+                            null,
+                            React.createElement('div', { className: 'stat-label' }, 'Time'),
+                            React.createElement('div', { style: { fontSize: '18px', color: '#fbbf24', fontWeight: 'bold' } }, formatTime(time))
+                        )
+                    ),
+                    // Top-right
+                    React.createElement(
+                        'div',
+                        { className: 'ui-panel ui-top-right' },
+                        React.createElement('div', { className: 'stat-label', style: { marginBottom: '8px' } }, 'Eliminations'),
+                        React.createElement('div', { style: { fontSize: '48px', color: '#ec4899', fontWeight: 'bold' } }, eliminations)
+                    ),
+                    // Right panel
+                    React.createElement(
+                        'div',
+                        { className: 'ui-panel ui-right' },
+                        React.createElement(
+                            'div',
+                            { className: 'stat-group' },
+                            React.createElement('div', { className: 'stat-label' }, 'Health'),
+                            React.createElement(
+                                'div',
+                                { className: 'health-bar' },
+                                React.createElement('div', {
+                                    className: 'health-fill',
+                                    style: { width: `${(player.health / 100) * 100}%` },
+                                })
+                            ),
+                            React.createElement('div', { style: { fontSize: '12px', color: '#cbd5e1' } }, `${Math.round(player.health)}/100`)
+                        ),
+                        React.createElement(
+                            'div',
+                            { className: 'stat-group' },
+                            React.createElement('div', { className: 'stat-label' }, 'Wood'),
+                            React.createElement(
+                                'div',
+                                { className: 'materials-bar' },
+                                React.createElement('div', {
+                                    className: 'materials-fill',
+                                    style: { width: `${(player.materials / 300) * 100}%` },
+                                })
+                            ),
+                            React.createElement('div', { style: { fontSize: '12px', color: '#cbd5e1' } }, `${Math.round(player.materials)}/300`)
+                        )
+                    )
+                )
+            );
+        };
+
+        // Win Screen Component
+        const WinScreen = ({ stats, onReturnHome }) => {
+            return React.createElement(
+                'div',
+                { className: 'win-screen slide-in-down' },
+                React.createElement('h1', { className: 'win-title float' }, 'VICTORY ROYALE!'),
+                React.createElement(
+                    'div',
+                    { className: 'stats-display' },
+                    React.createElement(
+                        'div',
+                        { className: 'stat-card' },
+                        React.createElement('h3', null, 'Eliminations'),
+                        React.createElement('p', { className: 'big-stat' }, stats.eliminations)
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'stat-card' },
+                        React.createElement('h3', null, 'Survivors'),
+                        React.createElement('p', { className: 'big-stat' }, '1st Place')
+                    ),
+                    React.createElement(
+                        'div',
+                        { className: 'stat-card' },
+                        React.createElement('h3', null, 'XP Earned'),
+                        React.createElement('p', { className: 'big-stat' }, '+250')
+                    )
+                ),
+                React.createElement('button', { className: 'btn btn-primary', onClick: onReturnHome }, 'Return to Lobby')
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [currentScreen, setCurrentScreen] = useState('start');
+            const [playerStats, setPlayerStats] = useState({ eliminations: 0 });
+
+            return React.createElement(
+                React.Fragment,
+                null,
+                currentScreen === 'start' && React.createElement(StartScreen, { onPlayClick: () => setCurrentScreen('lobby') }),
+                currentScreen === 'lobby' && React.createElement(LobbyScreen, {
+                    onStartMatch: () => setCurrentScreen('game'),
+                    onBack: () => setCurrentScreen('start'),
+                }),
+                currentScreen === 'game' && React.createElement(GameScreen, {
+                    onGameEnd: (stats) => {
+                        setPlayerStats(stats);
+                        setCurrentScreen('win');
+                    },
+                }),
+                currentScreen === 'win' && React.createElement(WinScreen, {
+                    stats: playerStats,
+                    onReturnHome: () => setCurrentScreen('start'),
+                })
+            );
+        };
+
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(App));
+    </script>
+</body>
+</html>
